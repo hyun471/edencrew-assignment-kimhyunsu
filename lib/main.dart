@@ -1,10 +1,11 @@
 import 'package:edencrew_assignment_starter/app_router.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'theme/theme.dart';
 
 void main() {
-  runApp(const EdencrewAssignmentApp());
+  runApp(const ProviderScope(child: EdencrewAssignmentApp()));
 }
 
 class EdencrewAssignmentApp extends StatelessWidget {
