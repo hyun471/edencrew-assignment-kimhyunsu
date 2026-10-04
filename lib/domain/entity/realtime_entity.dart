@@ -10,10 +10,10 @@ class RealtimeEntity {
     required this.lowPrice,
     required this.volume,
     required this.listedShares,
-    this.change,
-    this.changeRate,
-    this.marketCap,
-    this.direction,
+    required this.change,
+    required this.changeRate,
+    required this.marketCap,
+    required this.direction,
   });
 
   final String code;
@@ -24,8 +24,8 @@ class RealtimeEntity {
   final int lowPrice;
   final int volume;
   final int listedShares;
-  final int? change;
-  final double? changeRate;
-  final int? marketCap;
-  final PriceDirection? direction;
+  final int change;
+  final double changeRate;
+  final int marketCap;
+  final PriceDirection direction;
 }

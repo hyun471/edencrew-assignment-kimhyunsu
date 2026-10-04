@@ -6,7 +6,7 @@ class DailyEntity {
     required this.lowPrice,
     required this.closePrice,
     required this.volume,
-    this.change,
+    required this.change,
   });
 
   final DateTime date;
@@ -15,5 +15,5 @@ class DailyEntity {
   final int lowPrice;
   final int closePrice;
   final int volume;
-  final int? change;
+  final int change;
 }
