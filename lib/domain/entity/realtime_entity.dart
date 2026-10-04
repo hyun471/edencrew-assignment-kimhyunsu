@@ -1,3 +1,5 @@
+import 'package:edencrew_assignment_starter/domain/entity/price_direction.dart';
+
 class RealtimeEntity {
   RealtimeEntity({
     required this.code,
@@ -8,6 +10,10 @@ class RealtimeEntity {
     required this.lowPrice,
     required this.volume,
     required this.listedShares,
+    this.change,
+    this.changeRate,
+    this.marketCap,
+    this.direction,
   });
 
   final String code;
@@ -18,4 +24,8 @@ class RealtimeEntity {
   final int lowPrice;
   final int volume;
   final int listedShares;
+  final int? change;
+  final double? changeRate;
+  final int? marketCap;
+  final PriceDirection? direction;
 }
