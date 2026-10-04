@@ -1,6 +1,7 @@
 import 'package:edencrew_assignment_starter/theme/theme.dart';
 import 'package:edencrew_assignment_starter/view/components/app_bottom_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class WatchListPage extends StatelessWidget {
   const WatchListPage({super.key});
@@ -67,84 +68,95 @@ class WatchListPage extends StatelessWidget {
                 ],
               ),
             ),
-            // watchStockList.isEmpty
-            //     ? EmptyWatchList()
-            //     :
-            Expanded(
-              child: ListView.builder(
-                itemCount: watchStockList.length,
-                itemBuilder: (context, index) {
-                  return Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: context.dimens.space4,
-                      vertical: context.dimens.space3,
-                    ),
-                    width: double.infinity,
-                    constraints: BoxConstraints(
-                      minHeight: context.dimens.rowMinHeight,
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                watchStockList[index],
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: AppTypography.medium,
-                                  height: 20 / 15,
-                                  color: context.colors.textPrimary,
+            watchStockList.isEmpty
+                ? EmptyWatchList()
+                : Expanded(
+                    child: ListView.builder(
+                      itemCount: watchStockList.length,
+                      itemBuilder: (context, index) {
+                        return GestureDetector(
+                          onTap: () => context.push('/detail/${11}'),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: context.colors.borderSubtle,
+                                  width: 1,
                                 ),
                               ),
-                              Text(
-                                "${watchStockList[index]} · ${watchStockList[index]}",
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: AppTypography.regular,
-                                  height: 14 / 11,
-                                  color: context.colors.textSecondary,
+                            ),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: context.dimens.space4,
+                              vertical: context.dimens.space3,
+                            ),
+                            width: double.infinity,
+                            constraints: BoxConstraints(
+                              minHeight: context.dimens.rowMinHeight,
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        watchStockList[index],
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: AppTypography.medium,
+                                          height: 20 / 15,
+                                          color: context.colors.textPrimary,
+                                        ),
+                                      ),
+                                      Text(
+                                        "${watchStockList[index]} · ${watchStockList[index]}",
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: AppTypography.regular,
+                                          height: 14 / 11,
+                                          color: context.colors.textSecondary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
+                                SizedBox(
+                                  width: 68,
+                                  height: 36,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Text(
+                                        watchStockList[index],
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: AppTypography.medium,
+                                          color: context.colors.textPrimary,
+                                        ),
+                                      ),
+                                      Text(
+                                        "${watchStockList[index]}(${watchStockList[index]})",
+                                        style: TextStyle(
+                                          height: 14 / 11,
+                                          fontSize: 11,
+                                          fontWeight: AppTypography.regular,
+                                          color: isUp
+                                              ? context.colors.priceUpText
+                                              : context.colors.priceDownText,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        SizedBox(
-                          width: 68,
-                          height: 36,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                watchStockList[index],
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: AppTypography.medium,
-                                  color: context.colors.textPrimary,
-                                ),
-                              ),
-                              Text(
-                                "${watchStockList[index]}(${watchStockList[index]})",
-                                style: TextStyle(
-                                  height: 14 / 11,
-                                  fontSize: 11,
-                                  fontWeight: AppTypography.regular,
-                                  color: isUp
-                                      ? context.colors.priceUpText
-                                      : context.colors.priceDownText,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
-            ),
+                  ),
           ],
         ),
       ),
