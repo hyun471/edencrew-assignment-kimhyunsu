@@ -45,3 +45,8 @@ class WatchListViewModel extends Notifier<WatchListState> {
     state = state.copyWith();
   }
 }
+
+final watchListViewModelProvider =
+    NotifierProvider<WatchListViewModel, WatchListState>(
+      () => WatchListViewModel(),
+    );

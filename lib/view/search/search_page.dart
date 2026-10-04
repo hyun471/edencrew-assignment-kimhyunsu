@@ -1,17 +1,32 @@
 import 'package:edencrew_assignment_starter/theme/theme.dart';
 import 'package:edencrew_assignment_starter/view/components/app_bottom_app_bar.dart';
+import 'package:edencrew_assignment_starter/viewmodel/search/search_view_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class SearchPage extends StatelessWidget {
+class SearchPage extends ConsumerStatefulWidget {
   const SearchPage({super.key});
 
   @override
+  ConsumerState<SearchPage> createState() => _SearchPageState();
+}
+
+class _SearchPageState extends ConsumerState<SearchPage> {
+  final TextEditingController textEditingController = TextEditingController();
+
+  @override
+  void dispose() {
+    textEditingController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final searchState = ref.watch(searchViewModelProvider);
+    final searchVM = ref.read(searchViewModelProvider.notifier);
     final bool isLikeActive = false;
     bool isWatchActive = true;
-    final List<String> searchStockList = ['삼성'];
-    final TextEditingController textEditingController = TextEditingController();
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -38,15 +53,20 @@ class SearchPage extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    SizedBox(
-                      width: context.dimens.iconSm,
-                      height: context.dimens.iconSm,
-                      child: Image.asset('assets/images/ico_search.png'),
+                    GestureDetector(
+                      onTap: () =>
+                          searchVM.searchStocks(textEditingController.text),
+                      child: SizedBox(
+                        width: context.dimens.iconSm,
+                        height: context.dimens.iconSm,
+                        child: Image.asset('assets/images/ico_search.png'),
+                      ),
                     ),
                     SizedBox(width: context.dimens.space2),
                     Expanded(
                       child: Center(
                         child: TextField(
+                          onSubmitted: (value) => searchVM.searchStocks(value),
                           controller: textEditingController,
                           style: TextStyle(
                             fontSize: 15,
@@ -72,7 +92,10 @@ class SearchPage extends StatelessWidget {
                       ),
                     ),
                     GestureDetector(
-                      onTap: () => textEditingController.clear(),
+                      onTap: () {
+                        textEditingController.clear();
+                        searchVM.textClear();
+                      },
                       child: SizedBox(
                         width: context.dimens.iconSm,
                         height: context.dimens.iconSm,
@@ -83,14 +106,18 @@ class SearchPage extends StatelessWidget {
                 ),
               ),
             ),
-            searchStockList.isEmpty
+            searchState.inputText.isEmpty
                 ? EmptySearch()
+                : searchState.results.isEmpty
+                ? IncorrectSearch(inputText: searchState.inputText)
                 : Expanded(
                     child: ListView.builder(
-                      itemCount: searchStockList.length,
+                      itemCount: searchState.results.length,
                       itemBuilder: (context, index) {
                         return GestureDetector(
-                          onTap: () => context.push('/detail/${11}'),
+                          onTap: () => context.push(
+                            '/detail/${searchState.results[index].code}',
+                          ),
                           child: Container(
                             decoration: BoxDecoration(
                               border: Border(
@@ -117,7 +144,7 @@ class SearchPage extends StatelessWidget {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        searchStockList[index],
+                                        searchState.results[index].name,
                                         style: TextStyle(
                                           fontSize: 15,
                                           fontWeight: AppTypography.medium,
@@ -126,7 +153,7 @@ class SearchPage extends StatelessWidget {
                                         ),
                                       ),
                                       Text(
-                                        "${searchStockList[index]} · ${searchStockList[index]}",
+                                        "${searchState.results[index].code} · ${searchState.results[index].market}",
                                         style: TextStyle(
                                           fontSize: 11,
                                           fontWeight: AppTypography.regular,
@@ -210,7 +237,9 @@ class EmptySearch extends StatelessWidget {
 }
 
 class IncorrectSearch extends StatelessWidget {
-  const IncorrectSearch({super.key});
+  IncorrectSearch({super.key, required this.inputText});
+
+  final String inputText;
 
   @override
   Widget build(BuildContext context) {
@@ -238,7 +267,7 @@ class IncorrectSearch extends StatelessWidget {
             SizedBox(height: context.dimens.space3),
             Text(
               textAlign: TextAlign.center,
-              "'${11}'와\n일치하는 검색 결과를 찾지 못했습니다.",
+              "'$inputText'와\n일치하는 검색 결과를 찾지 못했습니다.",
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: AppTypography.regular,
