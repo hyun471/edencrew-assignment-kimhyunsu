@@ -1,17 +1,26 @@
+import 'package:edencrew_assignment_starter/core/utils/format_price.dart';
 import 'package:edencrew_assignment_starter/theme/theme.dart';
 import 'package:edencrew_assignment_starter/view/components/app_bottom_app_bar.dart';
+import 'package:edencrew_assignment_starter/view/components/skeleton_box.dart';
+import 'package:edencrew_assignment_starter/viewmodel/watch_list/watch_list_view_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class WatchListPage extends StatelessWidget {
+class WatchListPage extends ConsumerStatefulWidget {
   const WatchListPage({super.key});
 
   @override
+  ConsumerState<WatchListPage> createState() => _WatchListPageState();
+}
+
+class _WatchListPageState extends ConsumerState<WatchListPage> {
+  @override
   Widget build(BuildContext context) {
-    final bool isSortUp = true;
+    final watchListState = ref.watch(watchListViewModelProvider);
+    ref.watch(watchListViewModelProvider);
+    final watchListVM = ref.read(watchListViewModelProvider.notifier);
     final bool isLikeActive = true;
-    final List<String> watchStockList = ["삼성", "전자"];
-    final isUp = false;
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -40,7 +49,7 @@ class WatchListPage extends StatelessWidget {
                     child: Row(
                       children: [
                         Text(
-                          '가나다순',
+                          watchListState.sort.word,
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: AppTypography.bold,
@@ -51,16 +60,22 @@ class WatchListPage extends StatelessWidget {
                           width: 20,
                           height: 20,
                           child: Image.asset(
-                            isSortUp
-                                ? 'assets/images/ico_align@3x.png'
-                                : 'assets/images/ico_align@3x-2.png',
+                            // watchListState.ascending
+                            //     ?
+                            'assets/images/ico_align@3x.png',
+                            // : 'assets/images/ico_align@3x-2.png',
                           ),
                         ),
                         Spacer(),
-                        SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: Image.asset('assets/images/ico_refresh.png'),
+                        GestureDetector(
+                          onTap: () {
+                            watchListVM.getStockPrice();
+                          },
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: Image.asset('assets/images/ico_refresh.png'),
+                          ),
                         ),
                       ],
                     ),
@@ -68,14 +83,16 @@ class WatchListPage extends StatelessWidget {
                 ],
               ),
             ),
-            watchStockList.isEmpty
+            watchListState.stocks.isEmpty
                 ? EmptyWatchList()
                 : Expanded(
                     child: ListView.builder(
-                      itemCount: watchStockList.length,
+                      itemCount: watchListState.stocks.length,
                       itemBuilder: (context, index) {
+                        final stock = watchListState.stocks[index];
+                        final quote = watchListState.price[stock.code];
                         return GestureDetector(
-                          onTap: () => context.push('/detail/${11}'),
+                          onTap: () => context.push('/detail/${stock.code}'),
                           child: Container(
                             decoration: BoxDecoration(
                               border: Border(
@@ -102,7 +119,7 @@ class WatchListPage extends StatelessWidget {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        watchStockList[index],
+                                        stock.name,
                                         style: TextStyle(
                                           fontSize: 15,
                                           fontWeight: AppTypography.medium,
@@ -111,7 +128,7 @@ class WatchListPage extends StatelessWidget {
                                         ),
                                       ),
                                       Text(
-                                        "${watchStockList[index]} · ${watchStockList[index]}",
+                                        "${stock.code} · ${stock.market}",
                                         style: TextStyle(
                                           fontSize: 11,
                                           fontWeight: AppTypography.regular,
@@ -123,32 +140,58 @@ class WatchListPage extends StatelessWidget {
                                   ),
                                 ),
                                 SizedBox(
-                                  width: 68,
                                   height: 36,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Text(
-                                        watchStockList[index],
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: AppTypography.medium,
-                                          color: context.colors.textPrimary,
+                                  child: quote == null
+                                      ? const Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            SkeletonBox(width: 60, height: 14),
+                                            SizedBox(height: 4),
+                                            SkeletonBox(width: 44, height: 10),
+                                          ],
+                                        )
+                                      : Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
+                                          children: [
+                                            Text(
+                                              FormatPrice.comma(
+                                                quote.currentPrice,
+                                              ),
+                                              style: TextStyle(
+                                                fontSize: 15,
+                                                fontWeight:
+                                                    AppTypography.medium,
+                                                color:
+                                                    context.colors.textPrimary,
+                                              ),
+                                            ),
+                                            Text(
+                                              FormatPrice.change(
+                                                quote.change,
+                                                quote.changeRate,
+                                              ),
+                                              style: TextStyle(
+                                                height: 14 / 11,
+                                                fontSize: 11,
+                                                fontWeight:
+                                                    AppTypography.regular,
+                                                color: quote.change > 0
+                                                    ? context.colors.priceUpText
+                                                    : quote.change < 0
+                                                    ? context
+                                                          .colors
+                                                          .priceDownText
+                                                    : context
+                                                          .colors
+                                                          .priceFlatText,
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                      ),
-                                      Text(
-                                        "${watchStockList[index]}(${watchStockList[index]})",
-                                        style: TextStyle(
-                                          height: 14 / 11,
-                                          fontSize: 11,
-                                          fontWeight: AppTypography.regular,
-                                          color: isUp
-                                              ? context.colors.priceUpText
-                                              : context.colors.priceDownText,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
                                 ),
                               ],
                             ),

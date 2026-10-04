@@ -1,6 +1,8 @@
+import 'package:edencrew_assignment_starter/domain/entity/stock_entity.dart';
 import 'package:edencrew_assignment_starter/theme/theme.dart';
 import 'package:edencrew_assignment_starter/view/components/app_bottom_app_bar.dart';
 import 'package:edencrew_assignment_starter/viewmodel/search/search_view_model.dart';
+import 'package:edencrew_assignment_starter/viewmodel/watch_list/watch_list_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -26,7 +28,8 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     final searchState = ref.watch(searchViewModelProvider);
     final searchVM = ref.read(searchViewModelProvider.notifier);
     final bool isLikeActive = false;
-    bool isWatchActive = true;
+    ref.watch(watchListViewModelProvider);
+    final watchListVM = ref.read(watchListViewModelProvider.notifier);
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -166,13 +169,22 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                                 ),
                                 GestureDetector(
                                   onTap: () {
-                                    isWatchActive = false;
+                                    watchListVM.changeWatchedStock(
+                                      StockEntity(
+                                        code: searchState.results[index].code,
+                                        name: searchState.results[index].name,
+                                        market:
+                                            searchState.results[index].market,
+                                      ),
+                                    );
                                   },
                                   child: SizedBox(
                                     width: 22,
                                     height: 22,
                                     child: Image.asset(
-                                      isWatchActive
+                                      watchListVM.isWatchedStock(
+                                            searchState.results[index].code,
+                                          )
                                           ? 'assets/images/ico_starFill-2.png'
                                           : 'assets/images/ico_star-2.png',
                                     ),
@@ -237,7 +249,7 @@ class EmptySearch extends StatelessWidget {
 }
 
 class IncorrectSearch extends StatelessWidget {
-  IncorrectSearch({super.key, required this.inputText});
+  const IncorrectSearch({super.key, required this.inputText});
 
   final String inputText;
 
