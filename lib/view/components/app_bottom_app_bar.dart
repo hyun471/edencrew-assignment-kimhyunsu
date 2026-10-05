@@ -17,9 +17,10 @@ class AppBottomAppBar extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          GestureDetector(
-            onTap: () => context.go('/watchlist'),
-            child: Expanded(
+          Expanded(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => context.go('/watchlist'),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -47,9 +48,10 @@ class AppBottomAppBar extends StatelessWidget {
               ),
             ),
           ),
-          GestureDetector(
-            onTap: () => context.go('/search'),
-            child: Expanded(
+          Expanded(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => context.go('/search'),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -69,8 +71,8 @@ class AppBottomAppBar extends StatelessWidget {
                       fontSize: 11,
                       fontWeight: AppTypography.regular,
                       color: isLikeActive
-                          ? context.colors.navActive
-                          : context.colors.navInactive,
+                          ? context.colors.navInactive
+                          : context.colors.navActive,
                     ),
                   ),
                 ],
