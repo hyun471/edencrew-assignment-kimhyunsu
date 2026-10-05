@@ -1,117 +1,172 @@
-# Flutter 신입 개발자 과제
+# 국내 주식 관심종목 앱 (이든크루 Flutter 과제)
 
-국내 주식 관심종목 앱의 화면 3개를 **Flutter 코드**로 구현하고, 그중 한 화면을 저희 플랫폼 **Lucy Studio**로 다시 만드는 과제입니다. 전체 기간은 4일입니다.
-
-이 문서는 저장소를 실행하고 디자인 토큰을 쓰는 방법만 다룹니다. **과제 요구사항은 아래 문서에 있습니다.**
-
-| 문서 | 내용 |
-| --- | --- |
-| [`docs/ASSIGNMENT.md`](docs/ASSIGNMENT.md) | 화면별 요구사항, 평가 기준, 제출 방법 |
-| [`docs/NAVER_API.md`](docs/NAVER_API.md) | Naver 데이터 연동 가이드 (endpoint 4개) |
-
-**Figma 시안 링크는 안내 메일에 담겨 있습니다.** 시안의 `Screens` 페이지에는 화면 3개 외에 빈 상태 · 정렬 · 토스트처럼 같은 화면의 다른 상태를 그린 프레임과, 토큰 확인용 `Design Tokens — Dark` 프레임이 함께 있습니다. 어떤 프레임이 무엇인지는 [`docs/ASSIGNMENT.md`의 대상 화면](docs/ASSIGNMENT.md#대상-화면)에 정리해 두었습니다.
-
-AI 도구를 활용해도 괜찮습니다. 다만 이후 기술 면접에서 구현 내용을 구체적으로 질문할 예정이니, 직접 작성한 코드라고 설명할 수 있을 정도로 이해하고 계셔야 합니다.
+관심 / 검색 / 종목상세 화면 3개를 Flutter로 구현한 과제입니다. 데이터는 Naver 공개 endpoint 4개를 사용합니다.
 
 ---
 
-## 실행하기
+## 실행 방법
 
-이 저장소를 그대로 사용하면 됩니다. 별도로 프로젝트를 만들지 않아도 됩니다.
+| 항목 | 내용 |
+| --- | --- |
+| Flutter | 3.47.6 (stable) |
+| Dart | 3.13.5 |
+| 확인한 플랫폼 | macOS 데스크톱 (debug) |
 
 ```bash
 flutter pub get
-flutter run
+flutter run -d macos
 ```
 
-모든 플랫폼으로 실행할 수 있게 만들어져 있습니다. 다만 아래 두 가지를 주의해 주세요.
-
-- **웹(Chrome)에서는 동작하지 않습니다.** Naver endpoint가 CORS를 허용하지 않아 브라우저에서는 요청이 막힙니다. IDE 기본 실행 대상이 Chrome으로 잡혀 있는 경우가 많으니 실행 대상을 바꿔 주세요.
-- **모바일 기기나 에뮬레이터, 또는 Figma 프레임에 가까운 창 크기에서 확인해 주세요.** 데스크톱에서 창을 크게 띄우고 비교하면 의미가 없습니다.
-
-macOS 데스크톱으로 확인하실 경우 네트워크 요청에 entitlement가 필요합니다. debug 실행은 기본 설정으로 동작합니다.
+- **웹(Chrome)은 CORS 때문에 동작하지 않습니다.** macOS나 모바일 에뮬레이터로 실행해 주세요.
+- 폰트는 스타터에 등록된 `Noto Sans KR`을 그대로 사용했습니다. (변경 없음)
 
 ---
 
-## 저장소 구성
+## 구현 범위
 
-`flutter create` 직후의 기본 템플릿에 **디자인 토큰과 폰트만 미리 준비해 둔 상태**입니다.
+### 완료한 필수 항목
+
+**관심 화면**
+- 행 정보: 종목명, `종목코드 · 시장`, 현재가, 전일 대비 등락액과 등락률 (`-400 (-0.22%)`)
+- 상승 / 하락 / 보합 색상 (`priceUpText` / `priceDownText` / `priceFlatText`)
+- 상단 새로고침 버튼으로 시세 재조회
+- 하단 탭 바로 관심 / 검색 전환
+- 시세를 아직 받지 못한 행의 스켈레톤 (`feedbackSkeleton`)
+- 관심 종목이 없을 때 빈 상태 (헤더, 탭 바 유지)
+
+**검색 화면**
+- 검색 입력창 + 지우기 버튼 (지우면 초기 상태로 복귀)
+- 결과 행: 종목명, `종목코드 · 시장`, 관심 별 버튼 (`favoriteActive` / `favoriteInactive`)
+- 별 버튼으로 관심 등록 / 해제 즉시 반영
+- 결과 행 탭 시 종목 상세로 이동
+- 초기 상태, 검색 결과 없음 상태 (`'{검색어}'와 일치하는 검색 결과를 찾지 못했습니다.`)
+
+**종목상세 화면**
+- 뒤로 가기, 종목명, `종목코드 · 시장`, 관심 별 버튼
+- 현재가와 전일 대비 등락 (▲ / ▼)
+- 기간 탭 `1개월` / `3개월` / `6개월` / `1년` (선택 탭 `accentDefault` / `accentBg`), 탭에 따라 차트와 표의 기간 변경
+- 캔들 차트 (`chartLineUp` / `chartLineDown`)
+- 요약 카드: 시가, 고가, 저가, 거래량(`29,113천`), 시가총액(`1,063조`)
+- 일별 시세 표: 날짜(`MM.DD`), 종가, 등락(부호 + 색상), 거래량
+
+**상태 동기화**
+- 관심 상태를 관심 뷰모델 하나에 두어, 관심 / 검색 / 상세 화면의 별이 함께 바뀝니다.
+- 검색 직후, 검색에서 등록 후 관심 화면, 상세에서 해제 후 돌아왔을 때 모두 같은 상태를 봅니다.
+
+**데이터 연동 (Naver endpoint 4개)**
+- 요청, 파싱, DTO, 엔티티 변환을 직접 구현했습니다.
+- 관심 종목 시세는 **한 번의 요청**으로 조회합니다. (`SERVICE_ITEM:코드,코드`)
+- 일별 시세는 **이미 받은 구간을 다시 요청하지 않습니다.** (아래 "직접 판단한 부분" 참고)
+
+**정적 분석**
+- `flutter analyze` 결과: `No issues found!`
+
+### 남은 필수 항목
+
+| 항목 | 상태 |
+| --- | --- |
+| 관심 화면 정렬 (헤더 칩 → 바텀시트, 현재가순 / 등락률순 / 가나다순) | 헤더 칩 문구만 있고 바텀시트와 정렬 동작은 미구현 |
+| 검색 화면 관심 등록 / 해제 토스트 | 미구현 |
+| 관심 / 검색 화면의 로딩, 네트워크 오류 표시 | 뷰모델 상태(`isLoading`, `errorCode`)까지만 구현, 화면 표시는 미구현 |
+
+- 정렬은 `WatchSort` enum과 상태(`sort`)까지 만들어 두었습니다. 남은 작업은 바텀시트 UI와, 시세가 없는 행을 맨 아래에 두는 정렬 함수입니다.
+- 토스트는 별 버튼을 누르기 **전** 관심 여부로 등록 / 해제 문구를 정해 하단에 띄울 계획입니다.
+
+### 선택 항목
+- 구현하지 않았습니다. (`shared_preferences`는 관심 목록 영속화용으로 추가했지만 아직 사용하지 않습니다.)
+
+### 테스트
+- 작성하지 않았습니다. 스타터의 기본 위젯 테스트는 시작 화면을 교체하면서 제거했습니다.
+
+---
+
+## 기술 선택과 이유
+
+### 아키텍처: MVVM + 계층 분리
 
 ```text
-docs/
-  ASSIGNMENT.md           과제 요구사항 · 평가 기준 · 제출 방법
-  NAVER_API.md            Naver 데이터 연동 가이드
+view → viewmodel → domain(repository 인터페이스, entity) ← data(repository 구현체, datasource, dto)
+```
+
+- 화면 3개 규모라 UseCase 계층은 두지 않고, **MVVM + Repository 패턴**으로 구성했습니다.
+- Repository는 **인터페이스(domain) / 구현체(data)** 로 나눴습니다. ViewModel은 인터페이스만 알고, 구현체 연결은 `core/provider`에서 합니다.
+- 관심 상태, 종목 정보, 시세가 여러 화면에서 공유되어 **데이터 계층은 화면과 분리**하고, UI 계층만 화면별로 나눴습니다.
+
+### 폴더 구조
+
+```text
 lib/
-  main.dart               앱 진입점. 시작용 화면이 들어 있습니다
-  theme/
-    README.md             Figma 변수 ↔ Dart 필드 대응표
-    app_palette.dart      원시 팔레트 (Figma Primitives)
-    app_colors.dart       시맨틱 색상 토큰 (Figma Semantic / Dark)
-    app_dimens.dart       간격 · 반경 · 크기 토큰 (Figma Scale)
-    app_typography.dart   서체 · 굵기 토큰 (Figma Typography)
-    app_theme.dart        ThemeData 조립 + context 확장
-    theme.dart            barrel
-assets/
-  fonts/                  Noto Sans KR (등록까지 마쳐둔 상태입니다)
-  mock/                   응답 샘플을 저장해 쓰실 위치입니다
+├─ app_router.dart          go_router 설정
+├─ core/
+│  ├─ error/                ErrorCode, AppException, 오류 변환(toAppException)
+│  ├─ network/              Dio 생성, API 주소
+│  ├─ provider/             Datasource / Repository Provider
+│  └─ utils/                날짜, 가격 포맷
+├─ domain/
+│  ├─ entity/               StockEntity, RealtimeEntity, DailyEntity, Period, WatchSort ...
+│  └─ repositories/         Repository 인터페이스
+├─ data/
+│  ├─ dto/                  Naver 응답 DTO
+│  ├─ data_source/          endpoint 호출
+│  └─ repositories/         Repository 구현체
+├─ viewmodel/               관심 / 검색 / 상세 뷰모델
+└─ view/                    화면, 공용 위젯(하단 탭 바, 스켈레톤)
 ```
 
-`lib/` 아래 나머지 구조는 없습니다. **폴더 구조와 아키텍처는 직접 설계해 주세요.**
+### 상태관리: Riverpod (`Notifier`, 수동 Provider)
+- 화면마다 **상태 클래스 + `Notifier`** 로 뷰모델을 만들고, `state`에 새 상태를 할당해 화면을 갱신합니다.
+- 관심 상태는 세 화면이 함께 쓰는 공유 상태라 관심 뷰모델 하나에 두었습니다.
+- 상세 뷰모델은 `autoDispose`로 두어, 다른 종목 상세로 들어갈 때 이전 종목이 보이지 않게 했습니다.
+- Repository Provider는 `autoDispose`를 쓰지 않아, 일별 시세 보관 데이터가 앱이 켜져 있는 동안 유지됩니다.
 
-`lib/main.dart`의 `StartHereScreen`은 토큰 사용 예시를 겸한 임시 화면입니다. 지우고 직접 구현한 화면으로 바꿔 주세요.
+### 주요 패키지
+| 패키지 | 이유 |
+| --- | --- |
+| `flutter_riverpod` | 공유 상태와 의존성 주입 |
+| `go_router` | 경로 기반 화면 이동 (`/detail/:code`) |
+| `dio` | 타임아웃 설정과 오류 종류(`DioException.type`)를 `ErrorCode`로 매핑하기 쉬움 |
+
+### 차트: `CustomPainter`
+- 토큰 색과 시안의 여백을 정확히 맞추기 위해 패키지 대신 직접 그렸습니다.
+- 기간 안의 최고가 / 최저가로 세로 범위를 잡고, 캔들마다 심지(고가~저가)와 몸통(시가~종가)을 그립니다.
+- 축 라벨, 거래량 바, 크로스헤어는 구현하지 않았습니다. (선택 항목)
+
+### 디자인 토큰
+- 색상은 모두 `context.colors.*`, 간격 / 반경은 `context.dimens.*`를 사용했습니다. 토큰을 추가하거나 수정하지 않았습니다.
+- `analysis_options.yaml`에 플랫폼 폴더(`android`, `ios`, `macos` 등)를 분석 제외로 추가했습니다. 앱 코드(`lib/`)만 분석하기 위해서입니다.
 
 ---
 
-## 디자인 토큰
+## 직접 판단한 부분과 이유
 
-색상은 `ThemeExtension`으로 정의되어 있습니다. `AppTheme.dark`가 `MaterialApp`에 이미 연결되어 있으니 `context`로 꺼내 쓰시면 됩니다.
+### 데이터
+- **실시간 시세 응답 인코딩**: 종목명(`nm`)이 EUC-KR이라 Dio의 기본 해석이 실패했습니다. 응답을 바이트로 받아 `allowMalformed`로 해석했고, 종목명은 쓰지 않고 종목 메타 정보의 값을 사용합니다.
+- **등락은 직접 계산**: 응답에 `cv`, `cr`이 있지만 문서대로 `nv - pcv`, `(nv - pcv) / pcv`로 계산합니다. 전일 종가가 0이면 등락률은 0으로 둡니다.
+- **검색 필터**: `nationCode == KOR`, `category == stock`, 코드 6자리를 모두 만족하는 항목만 남깁니다. 지수 / 환율 같은 항목이 섞여 와도 깨지지 않도록 검색 DTO는 기본값을 두고, 이름이 비면 결과에서 제외합니다.
+- **관심 종목의 이름 / 시장**: 등록할 때 받은 `StockEntity`를 그대로 보관합니다. 관심 화면은 종목마다 메타 API를 부르지 않고 시세만 한 번 요청합니다. 상세 화면은 메타 API로 다시 조회합니다.
 
-```dart
-MaterialApp(
-  theme: AppTheme.dark,
-  home: const WatchlistScreen(),
-)
-```
+### 일별 시세 구간 재사용
+- 일별 시세 Repository가 종목 코드별로 받은 데이터를 메모리에 보관합니다.
+- 요청한 시작일이 보관 데이터의 가장 오래된 날짜 이후면 **요청 없이** 잘라서 반환합니다. (예: 1년을 받은 뒤 3개월)
+- 더 과거가 필요하면 **보관된 가장 오래된 날짜의 하루 전까지만** 요청해서 앞에 붙입니다. (예: 1개월 → 3개월)
+- **전일비 계산**: 응답에 전일비가 없어 직전 거래일 종가와의 차이로 계산합니다. 첫 행의 직전 거래일을 확보하려고 시작일을 **7일 앞당겨** 요청하고, 계산 후 요청 구간만 남깁니다. (주말, 연휴로 직전 거래일이 며칠 전일 수 있어서)
+- 한계: 오늘 값은 장중에 바뀌어도 이미 받은 날짜는 다시 받지 않습니다.
 
-```dart
-Text(
-  '삼성전자',
-  style: TextStyle(color: context.colors.textPrimary),
-)
-
-Container(
-  padding: EdgeInsets.symmetric(horizontal: context.dimens.space4),
-  decoration: BoxDecoration(
-    color: context.colors.surfaceRaised,
-    borderRadius: BorderRadius.circular(context.dimens.radiusMd),
-  ),
-)
-```
-
-지켜 주셔야 할 것:
-
-- **토큰 값을 수정하지 마세요.** 색상 hex를 화면 코드에 직접 쓰거나 `AppPalette`를 화면에서 바로 참조하지 말고, 항상 `context.colors.*` 시맨틱 토큰을 쓰세요. (필수)
-- 필요한 토큰이 없다고 판단되면 추가해도 됩니다. 다만 왜 추가했는지 메모에 적어 주세요.
-- **글자 크기와 행간은 토큰으로 정의되어 있지 않습니다.** Figma는 서체와 굵기만 변수로 관리하고 있어서, 크기는 각 화면의 텍스트 레이어에서 직접 확인해 주세요.
-
-Figma 변수명과 Dart 필드명, 원시값, hex는 [`lib/theme/README.md`](lib/theme/README.md)에 1:1로 정리해 두었습니다. Figma에서 본 색이 코드의 어느 필드인지 헷갈릴 때 그 표를 보시면 됩니다.
-
-### 폰트
-
-`Noto Sans KR`을 사용합니다. 폰트 파일과 `pubspec.yaml` 등록은 **미리 해두었으니 따로 작업하지 않으셔도 됩니다.**
-
-`assets/fonts/`에 Regular / Medium / Bold 세 가지 굵기가 들어 있고, `AppTypography.fontFamily`(`'NotoSansKR'`)와 같은 이름으로 등록되어 있습니다. `AppTheme.dark`가 이 family를 기본 서체로 잡아둡니다.
-
-다른 방식(예: `google_fonts` 패키지)으로 바꾸셔도 무방합니다. 바꾸셨다면 메모에 적어 주세요.
+### 화면
+- **로딩**: 관심 화면은 시세 전 스켈레톤, 상세 화면은 처음 진입 시 전체 로딩, 기간 탭 변경 시 차트 영역만 로딩을 표시합니다.
+- **네트워크 오류**: Repository에서 오류를 `ErrorCode`(network / timeout / server / parse / unknown)로 변환하고 뷰모델 상태에 담습니다. 상세 화면은 이 문구를 표시하고, 기간 변경 실패 시 기존 데이터를 유지한 채 차트 아래에 문구를 보여줍니다. (관심 / 검색 화면의 표시는 남은 항목)
+- **긴 종목명**: 상세 앱바의 종목명은 한 줄 말줄임 처리했습니다.
+- **검색 요청 순서**: 빠르게 다시 검색해도 마지막 검색어의 결과만 반영하도록, 응답이 왔을 때 현재 검색어와 다르면 버립니다.
+- **등락 표기**: 상승은 `+`, 하락은 `-` 부호를 붙였습니다. 상세 헤더는 시안대로 `▼ 400 (-0.22%)` 형식입니다.
+- **시가총액 축약**: 1조 이상은 `조`, 미만은 `억` 단위로 표기합니다.
 
 ---
 
-## 이 README에 대해
+## 막혔던 지점과 접근
 
-제출 시 이 문서는 **본인 프로젝트의 README로 덮어써 주세요.** 작성할 내용은 [`docs/ASSIGNMENT.md`의 제출 방법](docs/ASSIGNMENT.md#제출-방법)에 정리되어 있습니다. `docs/` 아래 문서는 남겨 두시면 됩니다.
-
-## 라이선스
-
-이 저장소는 이든크루 채용 과제의 스타터 템플릿으로만 제공됩니다. 과제 수행을 위해 복제하고 수정하는 것은 괜찮습니다. 다만 그 범위를 넘어선 재배포나 상업적 이용은 Edencrew의 명시적인 허가 없이 허용되지 않습니다. 자세한 내용은 루트의 `LICENSE` 파일을 확인해 주세요.
-
-**별도로 전달드린 Figma 시안과 Lucy Studio 설치 파일은 외부에 공유하지 말아주세요.**
+| 문제 | 원인 | 해결 |
+| --- | --- | --- |
+| `flutter analyze`가 실행 중 크래시 | 프로젝트 경로에 한글 폴더가 있어 분석 서버가 경로를 처리하지 못함 | 프로젝트를 영문 경로로 이동 |
+| 관심 화면 시세가 계속 스켈레톤 | 실시간 시세 응답이 EUC-KR이라 JSON 해석 실패 | 바이트로 받아 직접 디코딩 |
+| 일별 시세 구간을 합칠 때 날짜 중복 | 보관 구간과 새 요청 구간의 끝 날짜가 겹침 | 요청 끝 날짜를 보관된 가장 오래된 날짜의 하루 전으로 조정 |
+| Thunder Client에서 한글 검색어가 결과 없음 | 붙여 넣은 한글이 자모 분리(NFD) 상태 | 인코딩된 값으로 요청해 확인 (앱은 `queryParameters`로 자동 인코딩) |

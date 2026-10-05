@@ -15,6 +15,20 @@ class FormatPrice {
     return '$sign${comma(change.abs())} ($sign$percent%)';
   }
 
+  // 일별 시세 표의 등락: +1,200 / -400 / 0
+  static String signed(int value) {
+    final sign = value > 0 ? '+' : '';
+    return '$sign${comma(value)}';
+  }
+
+  // 상세 헤더의 등락: ▲ 1,200 (+0.67%) / ▼ 400 (-0.22%) / 0 (0.00%)
+  static String arrowChange(int change, double rate) {
+    final arrow = change > 0 ? '▲ ' : (change < 0 ? '▼ ' : '');
+    final sign = change > 0 ? '+' : (change < 0 ? '-' : '');
+    final percent = (rate.abs() * 100).toStringAsFixed(2);
+    return '$arrow${comma(change.abs())} ($sign$percent%)';
+  }
+
   static String volume(int value) {
     if (value < 1000) return comma(value);
     return '${comma(value ~/ 1000)}천';
